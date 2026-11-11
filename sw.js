@@ -1,4 +1,4 @@
-const CACHE_NAME = "nika-nastya-expenses-v8";
+const CACHE_NAME = "nika-nastya-expenses-v9";
 const APP_SHELL = [
   "./",
   "./index.html",

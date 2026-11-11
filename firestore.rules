@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAllowedPerson() {
+      return request.auth != null
+        && request.auth.token.email in [
+          'NIKA_EMAIL@example.com',
+          'NASTYA_EMAIL@example.com'
+        ];
+    }
+
+    // The application stores shared data only under this fixed group.
+    // Replace the two example addresses with the actual Firebase Auth emails.
+    match /groups/shared/{document=**} {
+      allow read, write: if isAllowedPerson();
+    }
+  }
+}

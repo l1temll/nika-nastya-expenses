@@ -1,5 +1,5 @@
 /* Bump CACHE_NAME whenever you publish a new app version. */
-const CACHE_NAME = "nika-nastya-expenses-v4";
+const CACHE_NAME = "nika-nastya-expenses-v5";
 const APP_SHELL = [
   "./",
   "./index.html",

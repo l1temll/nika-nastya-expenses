@@ -1,6 +1,6 @@
 /*
  * Nika & Nastya — Shared Expenses
- * Static PWA, local-first with direct Firestore sync (без почты и паролей).
+ * Static PWA, local-first with direct Firestore sync + FPI Bank Card & Marker Cats UI.
  */
 
 const FIREBASE_CONFIG = {
@@ -17,6 +17,7 @@ const FIREBASE_VERSION = "10.13.1";
 const STORAGE_KEY = "nika_nastya_expenses_v1";
 const THEME_KEY = "nika_nastya_theme_v1";
 const DESIGN_KEY = "nika_nastya_design_v1";
+const PATTERN_KEY = "nika_nastya_pattern_v1";
 const USER_KEY = "nika_nastya_user_v1";
 const GROUP_ID = "shared";
 
@@ -35,8 +36,9 @@ const state = {
   expenses: [],
   settlements: [],
   settledAt: 0,
-  theme: localStorage.getItem(THEME_KEY) || "light",
-  design: localStorage.getItem(DESIGN_KEY) || "default",
+  theme: localStorage.getItem(THEME_KEY) || "dark",
+  design: localStorage.getItem(DESIGN_KEY) || "cats",
+  pattern: localStorage.getItem(PATTERN_KEY) || "bold",
   myUser: localStorage.getItem(USER_KEY) || "nika",
   payer: localStorage.getItem(USER_KEY) || "nika",
   category: "food",
@@ -100,7 +102,7 @@ function readLocal() {
     state.expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
     state.settlements = Array.isArray(parsed.settlements) ? parsed.settlements : [];
     state.settledAt = Number(parsed.settledAt) || 0;
-  } catch (error) {
+  } catch (_) {
     state.expenses = [];
     state.settlements = [];
     state.settledAt = 0;
@@ -119,37 +121,49 @@ function writeLocal() {
   }
 }
 
+function isDarkLikeTheme(theme) {
+  return theme === "dark" || theme === "wb";
+}
+
 function setTheme(theme) {
-  state.theme = theme === "dark" ? "dark" : "light";
+  const valid = ["light", "dark", "bw", "wb"];
+  state.theme = valid.includes(theme) ? theme : "dark";
+  const darkLike = isDarkLikeTheme(state.theme);
+
   const root = document.documentElement;
   root.dataset.theme = state.theme;
-  root.style.colorScheme = state.theme;
+  root.style.colorScheme = darkLike ? "dark" : "light";
   document.body?.setAttribute("data-theme", state.theme);
 
   const themeColor = document.querySelector('meta[name="theme-color"]');
-  if (themeColor) themeColor.content = state.theme === "dark" ? "#101014" : "#f5f4fa";
+  if (themeColor) {
+    themeColor.content = state.theme === "wb" ? "#000000" : state.theme === "bw" ? "#ffffff" : darkLike ? "#0f0f13" : "#f5f4f9";
+  }
 
   const toggle = $("#theme-toggle");
   if (toggle) {
-    const dark = state.theme === "dark";
-    toggle.setAttribute("aria-pressed", String(dark));
-    toggle.setAttribute("aria-label", dark ? "Включить светлую тему" : "Включить тёмную тему");
-    toggle.innerHTML = dark
+    toggle.setAttribute("aria-pressed", String(darkLike));
+    toggle.innerHTML = darkLike
       ? '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>'
       : '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z"/></svg>';
   }
 
   $$('[data-theme-choice]').forEach(button => {
-    const selected = button.dataset.themeChoice === state.theme;
-    button.classList.toggle("selected", selected);
+    button.classList.toggle("selected", button.dataset.themeChoice === state.theme);
   });
 
   updateDesignTexts();
   try { localStorage.setItem(THEME_KEY, state.theme); } catch (_) {}
 }
 
+function cycleThemeQuick() {
+  if (state.theme === "bw") return setTheme("wb");
+  if (state.theme === "wb") return setTheme("bw");
+  setTheme(state.theme === "light" ? "dark" : "light");
+}
+
 function setDesign(design) {
-  state.design = ["default", "cats", "zolo"].includes(design) ? design : "default";
+  state.design = ["default", "cats", "zolo"].includes(design) ? design : "cats";
   document.documentElement.dataset.design = state.design;
   document.body?.setAttribute("data-design", state.design);
 
@@ -159,6 +173,15 @@ function setDesign(design) {
 
   updateDesignTexts();
   try { localStorage.setItem(DESIGN_KEY, state.design); } catch (_) {}
+}
+
+function setPatternDensity(mode) {
+  state.pattern = mode === "soft" ? "soft" : "bold";
+  document.documentElement.dataset.pattern = state.pattern;
+  $$('[data-pattern-choice]').forEach(button => {
+    button.classList.toggle("selected", button.dataset.patternChoice === state.pattern);
+  });
+  try { localStorage.setItem(PATTERN_KEY, state.pattern); } catch (_) {}
 }
 
 function setMyUser(user) {
@@ -176,22 +199,25 @@ function updateDesignTexts() {
   const brandSub = $("#brand-sub");
   const cardBrand = $("#credit-card-brand");
   const designHint = $("#design-hint");
+  const darkLike = isDarkLikeTheme(state.theme);
 
   if (state.design === "cats") {
-    if (brandMark) brandMark.textContent = state.theme === "dark" ? "🐱" : "🐈‍⬛";
-    if (brandSub) brandSub.textContent = state.theme === "dark" ? "белые котики в ночи" : "чёрные котики на страже";
-    if (cardBrand) cardBrand.textContent = "CATS · PURR BANK";
-    if (designHint) designHint.textContent = state.theme === "dark" ? "Белые котики для тёмной темы." : "Чёрные котики для светлой темы.";
+    if (brandMark) brandMark.textContent = darkLike ? "🐱" : "🐈‍⬛";
+    if (brandSub) brandSub.textContent = darkLike ? "белые маркерные котики" : "чёрные маркерные котики";
+    if (cardBrand) cardBrand.textContent = "ФПИ БАНК · CATS EDITION";
+    if (designHint) designHint.textContent = darkLike
+      ? "Белые маркерные котики на тёмном/БЧ фоне."
+      : "Чёрные маркерные котики на светлом/ЧБ фоне.";
   } else if (state.design === "zolo") {
     if (brandMark) brandMark.textContent = "👑";
     if (brandSub) brandSub.textContent = "официальный бюджет 2004 🎧";
-    if (cardBrand) cardBrand.textContent = "IVAN ZOLO 2004 · БАОБАБ БАНК";
-    if (designHint) designHint.textContent = "Стиль Ивана Золо: короны, наушники и карта Баобаб.";
+    if (cardBrand) cardBrand.textContent = "ФПИ БАНК · ZOLO 2004";
+    if (designHint) designHint.textContent = "Стиль Ивана Золо 2004 + карта ФПИ Банка.";
   } else {
     if (brandMark) brandMark.textContent = "Н·Н";
     if (brandSub) brandSub.textContent = "наш общий журнал";
-    if (cardBrand) cardBrand.textContent = "N&N · SHARED CARD";
-    if (designHint) designHint.textContent = "Классический чистый интерфейс.";
+    if (cardBrand) cardBrand.textContent = "ФПИ БАНК · SHARED CARD";
+    if (designHint) designHint.textContent = "Чистый фон без узоров.";
   }
 }
 
@@ -307,6 +333,7 @@ function renderExpenses() {
 
   let lastDate = "";
   const html = [];
+  let idx = 0;
   for (const item of sorted) {
     const date = item.date || "";
     if (date !== lastDate) {
@@ -324,8 +351,9 @@ function renderExpenses() {
       : `<span class="expense-payment-status complete">Оплачено полностью</span>`;
     const payers = [...new Set(payments.map(p => p.payer))];
     const payerLabel = payers.length > 1 ? "Ника и Настя" : person;
+    const delayIdx = Math.min(idx++, 12);
     html.push(`
-      <button class="expense-row" type="button" data-expense-id="${escapeHTML(item.id)}" aria-label="Открыть покупку">
+      <button class="expense-row" style="--i:${delayIdx}" type="button" data-expense-id="${escapeHTML(item.id)}" aria-label="Открыть покупку">
         <span class="avatar ${item.payer === "nastya" ? "nastya" : "nika"}">${initial}</span>
         <span class="category-icon">${cat.emoji}</span>
         <span class="expense-copy"><span class="expense-person">${payerLabel}</span><span class="expense-description">${escapeHTML(item.description || cat.label)}</span>${paymentStatus}</span>
@@ -383,7 +411,7 @@ function renderBalance() {
   if (!hasDebt) {
     if (captionEl) captionEl.textContent = calc.total || calc.transfersTotal ? "Вы уже в балансе" : "Пока нет общих расходов";
     if (amountEl) amountEl.textContent = calc.total || calc.transfersTotal ? "0 ₽" : "—";
-    if (noteEl) noteEl.textContent = calc.total ? "Все текущие расчёты сведены поровну." : "Добавьте расходы, чтобы увидеть баланс.";
+    if (noteEl) noteEl.textContent = calc.total ? "Все текущие расчёты по карте ФПИ Банка сведены поровну." : "Добавьте расходы, чтобы увидеть баланс.";
     if (customBox) customBox.classList.add("hidden");
     if (settleBtn) {
       settleBtn.disabled = true;
@@ -664,7 +692,7 @@ async function deleteCurrentExpense() {
     $("#expense-dialog")?.close();
     showToast("Расход удалён");
     setSyncStatus("online", "Синхронизировано");
-  } catch (error) {
+  } catch (_) {
     showToast("Не удалось удалить расход");
   }
 }
@@ -709,7 +737,7 @@ async function settleUp() {
     }
     showToast(isFull ? "Весь долг погашен!" : `Перевод ${money(payAmount)} учтён в балансе`);
     setSyncStatus("online", "Синхронизировано");
-  } catch (error) {
+  } catch (_) {
     showToast("Не удалось сохранить перевод");
   }
 }
@@ -728,7 +756,7 @@ async function deleteSettlement(id) {
     }
     showToast("Перевод удалён");
     setSyncStatus("online", "Синхронизировано");
-  } catch (error) {
+  } catch (_) {
     showToast("Не удалось удалить перевод");
   }
 }
@@ -737,7 +765,7 @@ async function initFirebase() {
   const helpEl = $("#firebase-help");
   if (!isFirebaseConfigured()) {
     setSyncStatus("", "На этом устройстве");
-    if (helpEl) helpEl.innerHTML = "<strong>Локальный режим:</strong> заполните FIREBASE_CONFIG в app.js для общей синхронизации.";
+    if (helpEl) helpEl.innerHTML = "<strong>Локальный режим:</strong> проверьте FIREBASE_CONFIG в app.js.";
     return;
   }
   try {
@@ -757,11 +785,11 @@ async function initFirebase() {
     state.firebaseReady = true;
     attachCloudListeners();
     setSyncStatus("online", "Синхронизировано");
-    if (helpEl) helpEl.innerHTML = "<strong>База подключена:</strong> траты синхронизируются автоматически между устройствами без паролей.";
+    if (helpEl) helpEl.innerHTML = "<strong>ФПИ Банк Облако подключено:</strong> все расходы и переводы мгновенно синхронизируются между Никой и Настей.";
   } catch (error) {
     console.error("Firebase init error:", error);
     setSyncStatus("", "Ошибка связи");
-    if (helpEl) helpEl.innerHTML = "<strong>Ошибка:</strong> проверьте FIREBASE_CONFIG и доступ к интернету.";
+    if (helpEl) helpEl.innerHTML = "<strong>Ошибка:</strong> проверьте подключение к интернету и Rules в Firestore.";
   }
 }
 
@@ -775,23 +803,24 @@ function attachCloudListeners() {
     writeLocal();
     renderAll();
     setSyncStatus("online", "Синхронизировано");
-  }, () => setSyncStatus("", "Нет прав в Rules")));
+  }, () => setSyncStatus("", "Проверьте Rules")));
 
   state.unsubscribers.push(firebaseFns.onSnapshot(settlementsRef, snapshot => {
     state.settlements = snapshot.docs.map(docSnap => ({ ...docSnap.data(), id: docSnap.id }));
     writeLocal();
     renderAll();
     setSyncStatus("online", "Синхронизировано");
-  }, () => setSyncStatus("", "Нет прав в Rules")));
+  }, () => setSyncStatus("", "Проверьте Rules")));
 }
 
 function bindEvents() {
   $$("[data-tab]").forEach(button => button.addEventListener("click", () => switchTab(button.dataset.tab)));
   $("#add-open")?.addEventListener("click", openNewExpense);
-  $("#theme-toggle")?.addEventListener("click", () => setTheme(state.theme === "light" ? "dark" : "light"));
+  $("#theme-toggle")?.addEventListener("click", cycleThemeQuick);
   $("#settings-open")?.addEventListener("click", () => $("#settings-dialog")?.showModal());
   $$('[data-theme-choice]').forEach(button => button.addEventListener("click", () => setTheme(button.dataset.themeChoice)));
   $$('[data-design-choice]').forEach(button => button.addEventListener("click", () => setDesign(button.dataset.designChoice)));
+  $$('[data-pattern-choice]').forEach(button => button.addEventListener("click", () => setPatternDensity(button.dataset.patternChoice)));
   $$('[data-my-user]').forEach(button => button.addEventListener("click", () => setMyUser(button.dataset.myUser)));
 
   $("#settle-amount-input")?.addEventListener("input", updateSettleButtonLabel);
@@ -846,6 +875,7 @@ function bootstrap() {
   readLocal();
   setTheme(state.theme);
   setDesign(state.design);
+  setPatternDensity(state.pattern);
   setMyUser(state.myUser);
   renderAll();
   bindEvents();

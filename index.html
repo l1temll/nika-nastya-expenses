@@ -549,32 +549,34 @@
     <div class="sheet-panel">
       <div class="sheet-handle"></div>
       <div class="sheet-head"><h2>Настройки</h2><button class="close-button" type="button" data-close="settings-dialog" aria-label="Закрыть">×</button></div>
+      
+      <section class="settings-section" aria-label="Владелец телефона">
+        <div class="settings-section-title">Кто пользуется этим телефоном?</div>
+        <div class="segmented" role="group" aria-label="Выбор пользователя">
+          <button class="segment-button selected" type="button" data-my-user="nika">Я Ника</button>
+          <button class="segment-button" type="button" data-my-user="nastya">Я Настя</button>
+        </div>
+      </section>
+
       <section class="settings-section" aria-label="Внешний вид">
         <div class="settings-section-title">Тема оформления</div>
         <div class="theme-segmented" role="group" aria-label="Тема приложения">
-          <button class="theme-choice" type="button" data-theme-choice="light" aria-pressed="false">☀ Светлая</button>
-          <button class="theme-choice" type="button" data-theme-choice="dark" aria-pressed="false">☾ Тёмная</button>
+          <button class="theme-choice" type="button" data-theme-choice="light">☀ Светлая</button>
+          <button class="theme-choice" type="button" data-theme-choice="dark">☾ Тёмная</button>
         </div>
 
         <div class="settings-section-title" style="margin-top:14px;">Дизайн (Скин)</div>
         <div class="design-segmented" role="group" aria-label="Стиль дизайна">
-          <button class="design-choice" type="button" data-design-choice="default" aria-pressed="true">✨ Обычный</button>
-          <button class="design-choice" type="button" data-design-choice="cats" aria-pressed="false">🐈‍⬛ Котики</button>
-          <button class="design-choice" type="button" data-design-choice="zolo" aria-pressed="false">👑 Иван Золо</button>
+          <button class="design-choice" type="button" data-design-choice="default">✨ Обычный</button>
+          <button class="design-choice" type="button" data-design-choice="cats">🐈‍⬛ Котики</button>
+          <button class="design-choice" type="button" data-design-choice="zolo">👑 Иван Золо</button>
         </div>
         <div class="design-hint" id="design-hint">Классический чистый интерфейс без паттернов.</div>
       </section>
-      <div class="settings-section-title">Общая синхронизация</div>
-      <p class="settings-copy">Чтобы Ника и Настя видели один и тот же список расходов на разных телефонах, подключите Firebase. Вход выполняется по отдельным аккаунтам, разрешённым в настройках базы.</p>
-      <div class="settings-status" id="firebase-help"><strong>Локальный режим.</strong> Пока расходы хранятся только в браузере этого устройства. Настройка Firebase описана в README.</div>
-      <form id="login-form" class="settings-form">
-        <label class="field-label" for="login-email">Электронная почта</label>
-        <input class="text-input" id="login-email" type="email" autocomplete="username" placeholder="name@example.com" required>
-        <label class="field-label" for="login-password">Пароль</label>
-        <input class="text-input" id="login-password" type="password" autocomplete="current-password" placeholder="Пароль Firebase" required>
-        <div class="helper-text" id="login-error" role="alert"></div>
-        <div class="settings-actions"><button class="secondary-button" type="button" id="logout-button" disabled>Выйти</button><button class="primary-button" type="submit" id="login-button">Подключиться</button></div>
-      </form>
+
+      <div class="settings-status" id="firebase-help">
+        <strong>Облачная база:</strong> Подключение...
+      </div>
     </div>
   </dialog>
 

@@ -3,12 +3,16 @@
  * Static PWA, local-first with optional Firebase Authentication + Firestore sync.
  */
 
-const FIREBASE_CONFIG = {
-  apiKey: "PASTE_FIREBASE_API_KEY",
-  authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
-  projectId: "PASTE_PROJECT_ID",
-  appId: "PASTE_FIREBASE_APP_ID"
+const firebaseConfig = {
+  apiKey: "AIzaSyD_Ymf72f92rerLVIZd7uGaGmn4wVNK2Lk",
+  authDomain: "nika-nastya-expenses.firebaseapp.com",
+  projectId: "nika-nastya-expenses",
+  storageBucket: "nika-nastya-expenses.firebasestorage.app",
+  messagingSenderId: "636574347794",
+  appId: "1:636574347794:web:5de409c3dc2a49da0adecb",
+  measurementId: "G-LQMJ31R0JR"
 };
+
 
 const FIREBASE_VERSION = "10.13.1";
 const STORAGE_KEY = "nika_nastya_expenses_v1";

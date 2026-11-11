@@ -3,7 +3,7 @@
  * Static PWA, local-first with direct Firestore sync (без почты и паролей).
  */
 
-const firebaseConfig = {
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyD_Ymf72f92rerLVIZd7uGaGmn4wVNK2Lk",
   authDomain: "nika-nastya-expenses.firebaseapp.com",
   projectId: "nika-nastya-expenses",
